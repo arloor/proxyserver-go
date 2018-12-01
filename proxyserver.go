@@ -16,7 +16,7 @@ var TRACE = []byte("TRACE")
 var OPTIONS = []byte("OPTIONS")
 var HEAD = []byte("HEAD")
 
-const proxyServerAddr = "127.0.0.1:8080"
+const proxyServerAddr = ":8080"
 
 func main() {
 	listener, err := net.Listen("tcp", proxyServerAddr)
@@ -26,7 +26,7 @@ func main() {
 	}
 	log.Println("在", proxyServerAddr, "监听成功")
 
-	for ; ; {
+	for {
 		clientConn, err := listener.Accept()
 		if err != nil {
 			log.Println("accept客户端连接失败，err: ", err)
@@ -45,14 +45,14 @@ func serveProxyConn(proxyConn *connection.ProxyConn) {
 
 func serveClientConn(proxyConn *connection.ProxyConn) {
 	clientConn := proxyConn.ConnClient
-	for ; ; {
+	for {
 		var info = proxyConn.Info()
 		buf := make([]byte, 1024)
 		numRead, err := clientConn.Read(buf)
-		util.Qufan(&buf,numRead)
+		util.Qufan(&buf, numRead)
 		if err != nil {
 			log.Println("从", info, "的本地连接读出错,关闭整条连接，err:", err)
-			proxyConn.Close();
+			proxyConn.Close()
 			return
 		}
 		log.Println("从", info, "本地读到：", numRead, "字节")
@@ -81,15 +81,15 @@ func serveClientConn(proxyConn *connection.ProxyConn) {
 }
 
 func serveServerConn(proxyConn *connection.ProxyConn) {
-	var buf=make([]byte,2048)
-	serverConn:=proxyConn.ConnServer
-	for ; ;  {
-		numRead,err:=serverConn.Read(buf)
-		if err!=nil{
+	var buf = make([]byte, 2048)
+	serverConn := proxyConn.ConnServer
+	for {
+		numRead, err := serverConn.Read(buf)
+		if err != nil {
 			proxyConn.Close()
 			return
-		}else{
-			proxyConn.WriteClient(buf,numRead)
+		} else {
+			proxyConn.WriteClient(buf, numRead)
 		}
 	}
 }
